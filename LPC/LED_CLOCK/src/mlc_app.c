@@ -390,7 +390,7 @@ void MLC_ParseCommand( char* buffer, int size ) {
     		work = 59;
     	}
     	s_counter_M = work;
-    	s_counter_H = s_counter_H + (s_counter_M / 10);
+    	s_counter_H = s_counter_H + (s_counter_M / 12);
     	DEBUG_PRINT("H:%d M:%d\n", s_counter_H, s_counter_M);
     }
     else if (0 == memcmp(buffer, SET_DATE_CMD, strlen(SET_DATE_CMD))) {
