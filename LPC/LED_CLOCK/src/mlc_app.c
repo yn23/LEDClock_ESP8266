@@ -377,7 +377,10 @@ void MLC_ParseCommand( char* buffer, int size ) {
     	if (work >= 12) {
     		isAM = false;
     	}
-    	work = (work * 6) / 2;
+    	work = (work * 5);
+    	if (work >= 60) {
+    		work -= 60;
+    	}
     	s_counter_H = work;
 
     	// calculate min
