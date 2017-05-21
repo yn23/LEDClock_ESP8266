@@ -659,7 +659,7 @@ void MLC_DrawTime(bool is_am, int32_t hour, int32_t min, int32_t sec) {
 		{21, 8, 0x00F0},		// date[left]
 		{26, 8, 0x00CC},		// date[right]
 	};
-	hour = hour / 6;
+	hour = hour / 5;
 	if (false == is_am) {
 		hour += 12;
 	}
