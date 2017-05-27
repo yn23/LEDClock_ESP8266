@@ -1,3 +1,4 @@
+
 /*
  Name:    Sketch1.ino
  Created: 2017/05/14 21:40:03
@@ -11,6 +12,10 @@
 #include <WiFiClient.h>
 #include <EEPROM.h>
 #include <ESP8266WebServer.h>
+#include <ESP8266HTTPClient.h>
+#include <ArduinoJson.h>
+
+#define WEATHER_MAX (12 * 60)
 
 const IPAddress apIP(192, 168, 1, 1);
 const char* apSSID = "ESP8266_SETUP";
@@ -20,7 +25,9 @@ String ssidList;
 DNSServer dnsServer;
 ESP8266WebServer webServer(80);
 TickerScheduler ts(2);
-
+int weather_counter = 0;
+const int BUFFER_SIZE = 1024;
+StaticJsonBuffer<BUFFER_SIZE> jsonBuffer;
 
 void doNtpSync(void* arg) {
 
@@ -28,10 +35,11 @@ void doNtpSync(void* arg) {
   time_t t;
 
   char s[20];
-//  const char* format = "%04d-%02d-%02d %02d:%02d:%02d";
   const char* format_date = "SET_DATE%02d%02d%02d";
   const char* format_time = "SET_TIME%02d%02d";
 
+  Serial.println("FFFF");
+  delay(1000);
   // JST
   t = localtime(n, 9);
   sprintf(s, format_date, (year(t) - 2000), month(t), day(t));
@@ -41,26 +49,23 @@ void doNtpSync(void* arg) {
   
   sprintf(s, format_time, hour(t), minute(t));
   Serial.println(s);
-
-//  Serial1.print("JST : ");
-//  Serial1.println(s);
-
-  // UTC
-  //t = localtime(n, 0);
-  //sprintf(s, format, year(t), month(t), day(t), hour(t), minute(t), second(t));
-  //Serial1.print("UTC : ");
-  //Serial1.println(s);
 }
 
 void doWeatherSync(void* arg) {
-//  Serial1.print("doWeatherSync : ");
+ if (weather_counter == 0) {
+  http_get();
+  weather_counter++;
+  if (weather_counter >= WEATHER_MAX) {
+    weather_counter = 0;
+  }
+ }
 }
 
 void setupExecuteTask() {
   // TODO
   ntp_begin(2390);
   ts.add(0, 60 * 1000, doNtpSync, NULL, true);
-  ts.add(1, 600 * 1000, doWeatherSync, NULL, true);
+  ts.add(1, 90 * 1000, doWeatherSync, NULL, true);
 }
 
 
@@ -286,4 +291,109 @@ String urlDecode(String input) {
   s.replace("%60", "`");
   return s;
 }
+
+  
+
+/**
+ * HTTPリクエスト（GET）
+ */
+void http_get() {
+
+  HTTPClient http;
+  http.begin("http://api.openweathermap.org/data/2.5/weather?q=Tokyo&units=metric&appid=73f3aed29ea46987635e3b36feefe760");
+  int httpCode = http.GET();
+  if(httpCode) {
+      Serial1.printf("[HTTP] GET... code: %d\n", httpCode);
+
+      if(httpCode == 200) {
+          String payload = http.getString();
+          Serial1.println(payload);
+          
+          /* JSONデコード */
+          JsonObject& root = jsonBuffer.parseObject(payload);
+          if (!root.success()) {
+              Serial1.println("parseObject() failed");
+          }
+          const char* weather = root["weather"][0]["description"];
+          String tempWeather = weather;
+          Serial1.println(weather);
+          
+          const char* tempature = root["main"]["temp"];
+          String wTemp = tempature;
+          int wIntTemp = wTemp.toInt();
+          Serial1.println(wIntTemp);
+
+          sendWeatherInfo(tempWeather, wIntTemp);
+      }
+  } else {
+      Serial1.printf("[HTTP] GET... failed, error: %d\n", httpCode);
+  }
+  http.end();
+}
+
+String WEATHER_1 = "clear sky";
+String WEATHER_2 = "few clouds";
+
+String WEATHER_3 = "scattered clouds";
+String WEATHER_4 = "broken clouds";
+
+String WEATHER_5 = "shower rain";
+String WEATHER_6 = "rain";
+
+String WEATHER_7 = "thunderstorm";
+
+String WEATHER_8 = "snow";
+
+String WEATHER_9 = "mist";
+
+void sendWeatherInfo(String& weather, int temp) {
+  const char* format_weather = "INFO_WTH%x";
+  const char* format_temp1 = "INFO_TMP+%02d";
+  const char* format_temp2 = "INFO_TMP%02d";
+  unsigned weather_int = 0;
+  
+  if (WEATHER_1 == weather) {
+    weather_int = 1;
+  }
+  else if (WEATHER_2 == weather) {
+    weather_int = 2;
+  }
+  else if (WEATHER_3 == weather) {
+    weather_int = 3;
+  }
+  else if (WEATHER_4 == weather) {
+    weather_int = 4;
+  }
+  else if (WEATHER_5 == weather) {
+    weather_int = 5;
+  }
+  else if (WEATHER_6 == weather) {
+    weather_int = 6;
+  }
+  else if (WEATHER_7 == weather) {
+    weather_int = 7;
+  }
+  else if (WEATHER_8 == weather) {
+    weather_int = 8;
+  }
+  else if (WEATHER_9 == weather) {
+    weather_int = 9;
+  }
+  else {
+    weather_int = 15;    
+  }
+  char s[20];
+  sprintf(s, format_weather, weather_int);
+  Serial.println(s);
+
+  if (temp >= 0) {
+    sprintf(s, format_temp1, temp);
+  }
+  else {
+    sprintf(s, format_temp2, temp);
+  }
+  Serial.println(s);
+}
+
+
 
