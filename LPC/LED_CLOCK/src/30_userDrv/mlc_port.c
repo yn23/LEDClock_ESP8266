@@ -493,6 +493,29 @@ void MLC_DrawLineBottom(uint16_t lineNum, uint16_t colorDepth, uint16_t* pFrmBuf
 	return ;
 }
 
+void MLC_PutMark(uint16_t* input_mark, StMlC_Position* pos, int8_t x, int8_t y) {
+//	syslog_2(1, "MyPoint2 x=%d y=%d", x, y);
+	uint16_t *srcAddr = input_mark;
+
+	if (0 == g_FrmBufNum) {
+		for (int j = pos->endPosY; j < pos->endPosY + y; j++) {
+			for (int i = pos->endPosX; i < pos->endPosX + x; i++) {
+				g_FramBuffer2[j][i] = *srcAddr;
+				srcAddr++;
+			}
+		}
+	}
+	else {
+		for (int j = pos->endPosY; j < pos->endPosY + y; j++) {
+			for (int i = pos->endPosX; i < pos->endPosX + x; i++) {
+				g_FramBuffer1[j][i] = *srcAddr;
+				srcAddr++;
+			}
+		}
+	}
+	return ;
+}
+
 void set_gpio_interrupt(void)
 {
 

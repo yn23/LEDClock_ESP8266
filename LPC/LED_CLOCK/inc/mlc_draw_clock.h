@@ -19,6 +19,7 @@
 #define MLC_DRAW_CLOCK_H_
 
 #include <chip.h>
+#include "mlc_port.h"
 
 #define CLOCK_SECOND	60	/* 最大値：秒 */
 #define CLOCK_MIN		60	/* 最大値：分 */
@@ -26,14 +27,6 @@
 #define DATE_LENGTH		6	/* 日付 */
 #define TIME_LENGTH		5	/* 時間 */
 #define TMP_LENGTH		4	/* 温度 */
-
-
-/* MatrixLedClockPostion */
-typedef struct _StMlC_Pos {
-	uint8_t				endPosX;		/* this pin is using (YES = ture/ No = false) */
-	uint8_t				endPoxY;		/* padding */
-	uint16_t			colorVal;		/* padding */
-} StMlC_Position;
 
 void MLC_DrawLineControl_S(uint32_t count);
 void MLC_DrawLineControl_M(uint32_t count);

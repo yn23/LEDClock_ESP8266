@@ -109,8 +109,12 @@ void sys_40ms_counter() {
 		if (FALSE == longPressMode) {
 			if (chatteringCnt >= 4) {
 				chatteringCnt = 0;
-
-				MLC_1mCounter();
+				if (s_AplMode == APLMODE_AnalogClock) {
+					s_AplMode = APLMODE_DigitalClock;
+				}
+				else {
+					s_AplMode = APLMODE_AnalogClock;
+				}
 			}
 		}
 		else {
@@ -309,6 +313,7 @@ void MLC_DigitalClockMain(  ) {
 	/* 気温を描画 */
 	MLC_DrawTemp(s_temperature, isPlus);
 	/* マークを描画 */
+	MLC_DrawMark(s_weather);
 
 	/* 線を描画 */
 	bufNum = MLC_GetFrmBufNum();

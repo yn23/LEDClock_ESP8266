@@ -21,6 +21,9 @@ const IPAddress apIP(192, 168, 1, 1);
 const char* apSSID = "ESP8266_SETUP";
 boolean settingMode;
 String ssidList;
+String gWeather = "";
+int gTempature = 0;
+
 
 DNSServer dnsServer;
 ESP8266WebServer webServer(80);
@@ -39,26 +42,30 @@ void doNtpSync(void* arg) {
   const char* format_time = "SET_TIME%02d%02d";
 
   Serial.println("FFFF");
+  Serial.println("");
   delay(1000);
   // JST
   t = localtime(n, 9);
   sprintf(s, format_date, (year(t) - 2000), month(t), day(t));
   Serial.println(s);
+  Serial.println("");
 
   delay(1000);
   
   sprintf(s, format_time, hour(t), minute(t));
   Serial.println(s);
+  Serial.println("");
 }
 
 void doWeatherSync(void* arg) {
- if (weather_counter == 0) {
-  http_get();
-  weather_counter++;
-  if (weather_counter >= WEATHER_MAX) {
-    weather_counter = 0;
+  if (weather_counter == 0) {
+    http_get();
+    weather_counter++;
+    if (weather_counter >= WEATHER_MAX) {
+      weather_counter = 0;
+    }
   }
- }
+  sendWeatherInfo(gWeather, gTempature);
 }
 
 void setupExecuteTask() {
@@ -315,15 +322,13 @@ void http_get() {
               Serial1.println("parseObject() failed");
           }
           const char* weather = root["weather"][0]["description"];
-          String tempWeather = weather;
-          Serial1.println(weather);
+          gWeather = weather;
+          Serial1.println(gWeather);
           
           const char* tempature = root["main"]["temp"];
           String wTemp = tempature;
-          int wIntTemp = wTemp.toInt();
-          Serial1.println(wIntTemp);
-
-          sendWeatherInfo(tempWeather, wIntTemp);
+          gTempature = wTemp.toInt();
+          Serial1.println(gTempature);
       }
   } else {
       Serial1.printf("[HTTP] GET... failed, error: %d\n", httpCode);
@@ -384,7 +389,9 @@ void sendWeatherInfo(String& weather, int temp) {
   }
   char s[20];
   sprintf(s, format_weather, weather_int);
+  delay(1000);
   Serial.println(s);
+  Serial.println("");
 
   if (temp >= 0) {
     sprintf(s, format_temp1, temp);
@@ -392,7 +399,9 @@ void sendWeatherInfo(String& weather, int temp) {
   else {
     sprintf(s, format_temp2, temp);
   }
+  delay(1000);
   Serial.println(s);
+  Serial.println("");
 }
 
 

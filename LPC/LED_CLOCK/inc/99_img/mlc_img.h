@@ -14,9 +14,8 @@
 
 /* 背景 */
 extern const uint16_t globalClock[FRM_BUF_HIGHT][FRM_BUF_WIDE];
-extern const uint16_t StrArray0[FRM_BUF_HIGHT][FRM_BUF_WIDE];
-extern const uint16_t StrArray1[FRM_BUF_HIGHT][FRM_BUF_WIDE];
-extern const uint16_t StrArray2[FRM_BUF_HIGHT][FRM_BUF_WIDE];
-extern const uint16_t StrArray3[FRM_BUF_HIGHT][FRM_BUF_WIDE];
+extern const uint16_t globalRainMark[MARK_HIGHT][MARK_WIDE];
+extern const uint16_t globalFineMark[MARK_HIGHT][MARK_WIDE];
+extern const uint16_t globalCloudyMark[MARK_HIGHT][MARK_WIDE];
 
 #endif /* MLC_IMG_H_ */

@@ -31,6 +31,10 @@ extern RINGBUFF_T txring, rxring;
 #define FRM_BUF_WIDE	32	/* フレームバッファ横幅*/
 #define FRM_BUF_HIGHT	32	/* フレームバッファ縦幅 */
 
+#define MARK_WIDE	14	/* フレームバッファ横幅*/
+#define MARK_HIGHT	15	/* フレームバッファ縦幅 */
+
+
 /* MatrixLedPort */
 typedef struct _StMlPortSetting {
 	CHIP_IOCON_PIO_T	pinNo;		/* PortNo */
@@ -39,6 +43,15 @@ typedef struct _StMlPortSetting {
 	uint8_t				isUsing;	/* this pin is using (YES = ture/ No = false) */
 	uint8_t				padding;	/* padding */
 } StMlPortSetting;
+
+/* MatrixLedClockPostion */
+typedef struct _StMlC_Pos {
+	uint8_t				endPosX;		/* this pin is using (YES = ture/ No = false) */
+	uint8_t				endPosY;		/* padding */
+	uint16_t			colorVal;		/* padding */
+} StMlC_Position;
+
+
 
 #ifdef __cplusplus
 extern "C" {
@@ -117,6 +130,7 @@ static inline void MLC_DE2_LowHigh( bool param ) {
 	Chip_GPIO_WritePortBit(LPC_GPIO, 1, 9, param);
 }
 
+void MLC_PutMark(uint16_t* input_mark, StMlC_Position* pos, int8_t x, int8_t y);
 /**
  *  
  *  other function

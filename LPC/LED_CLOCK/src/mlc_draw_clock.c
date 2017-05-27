@@ -507,18 +507,18 @@ void MLC_DrawLineControl_M(uint32_t count) {
 //	syslog_1(1, "drawline count_s=%d", count);
 	if (0 == count) {
 		end_x = clock_S_potion[CLOCK_SECOND - 1].endPosX;
-		end_y = clock_S_potion[CLOCK_SECOND - 1].endPoxY;
+		end_y = clock_S_potion[CLOCK_SECOND - 1].endPosY;
 	}
 	else {
 		end_x = clock_S_potion[count - 1].endPosX;
-		end_y = clock_S_potion[count - 1].endPoxY;
+		end_y = clock_S_potion[count - 1].endPosY;
 	}
 	/* 前回の針の位置を消去する */
 	MLC_DrawLineByBresenham(start_x, start_y, end_x, end_y, 0x0000, true);
 
 	/* 秒針描画 */
 	end_x = clock_S_potion[count].endPosX;
-	end_y = clock_S_potion[count].endPoxY;
+	end_y = clock_S_potion[count].endPosY;
 	color_val = clock_S_potion[count].colorVal;
 
 	/* 今回の針の位置を描画する */
@@ -544,18 +544,18 @@ void MLC_DrawLineControl_H(uint32_t count) {
 //	syslog_1(1, "drawline count_m=%d", count);
 	if (0 == count) {
 		end_x = clock_M_potion[CLOCK_SECOND - 1].endPosX;
-		end_y = clock_M_potion[CLOCK_SECOND - 1].endPoxY;
+		end_y = clock_M_potion[CLOCK_SECOND - 1].endPosY;
 	}
 	else {
 		end_x = clock_M_potion[count - 1].endPosX;
-		end_y = clock_M_potion[count - 1].endPoxY;
+		end_y = clock_M_potion[count - 1].endPosY;
 	}
 	/* 前回の針の位置を消去する */
 	MLC_DrawLineByBresenham(start_x, start_y, end_x, end_y, 0x0000, false);
 
 	/* 分を描画 */
 	end_x = clock_M_potion[count].endPosX;
-	end_y = clock_M_potion[count].endPoxY;
+	end_y = clock_M_potion[count].endPosY;
 	color_val = clock_M_potion[count].colorVal;
 
 	/* 今回の針の位置を描画する */
@@ -608,7 +608,7 @@ void MLC_DrawLineControl_S(uint32_t count) {
 		for (i = 0; i < CLOCK_SECOND; i++) {
 			/* ポジションを取得 */
 			end_x = clock_S_potion[i].endPosX;
-			end_y = clock_S_potion[i].endPoxY;
+			end_y = clock_S_potion[i].endPosY;
 			/* 背景色取得 */
 			color_val = globalClock[end_y][end_x];
 			/* 前回の針の位置を消去する */
@@ -618,7 +618,7 @@ void MLC_DrawLineControl_S(uint32_t count) {
 	for (i = 0; i < count; i++) {
 		/* ポジションを取得 */
 		end_x = clock_S_potion[i].endPosX;
-		end_y = clock_S_potion[i].endPoxY;
+		end_y = clock_S_potion[i].endPosY;
 		/* 背景色取得 */
 		color_val = globalClock[end_y][end_x];
 		if (0x0000 == color_val) {
@@ -693,10 +693,10 @@ void MLC_String(StMlC_Position* position, uint8_t* date, int length) {
 void MLC_DrawTemp(int32_t temp, bool is_plus){
 	uint8_t	tempTmp[TMP_LENGTH];
 	StMlC_Position	tempPos[TMP_LENGTH] = {
-		{11, 16, 0x00CC},		// month[left]
+		{11, 16, 0x00CC},		// plus
 		{16, 16, 0x0A25},		// temp[right]
 		{21, 16, 0x0FF0},		// temp[left]
-		{26, 16, 0x0FFF},		// right[right]
+		{26, 16, 0x0FFF},		// C
 	};
 	if (is_plus) {
 		tempTmp[0] = 0x00;
@@ -722,23 +722,35 @@ void MLC_DrawChar(StMlC_Position* position, uint8_t ch) {
 			for (y = 0; y < FONT_SIZE_Y; y++) {
 				point = ((data >> y) & 0x01);
 				if (0 != point) {
-					MLC_DrawPoints(position->endPosX + x, position->endPoxY + y, position->colorVal);
+					MLC_DrawPoints(position->endPosX + x, position->endPosY + y, position->colorVal);
 				}
 			}
 		}
 	}
 }
 
+void MLC_DrawMark(int32_t mark){
+	StMlC_Position	tempPos = {1, 16, 0x00CC};
+	uint16_t* inputMark;
 
-
-
-
-
-
-
-
-
-
-
-
+	switch (mark) {
+		case 1:
+		case 2:
+			inputMark = globalFineMark;
+			break;
+		case 3:
+		case 4:
+			inputMark = globalCloudyMark;
+			break;
+		case 5:
+		case 6:
+		case 7:
+			inputMark = globalRainMark;
+			break;
+		default:
+			inputMark = globalFineMark;
+			break;
+	}
+	MLC_PutMark(inputMark, &tempPos, MARK_WIDE, MARK_HIGHT);
+}
 
