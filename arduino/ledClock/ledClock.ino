@@ -61,7 +61,6 @@ void doNtpSync(void* arg) {
 void doWeatherSync(void* arg) {
   if (weather_counter == 0) {
     http_get();
-    weather_counter++;
   }
   if (weather_counter >= WEATHER_MAX) {
     weather_counter = 0;
@@ -71,13 +70,13 @@ void doWeatherSync(void* arg) {
     Serial.println("");
     delay(1000);
     if (1 == (weather_counter % 2)) {
-      Serial.println("");
       Serial.println("SET_MODEA");      
     }
     else {
       Serial.println("SET_MODED");
     }
   }
+  weather_counter++;
 }
 
 void setupExecuteTask() {
