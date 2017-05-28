@@ -15,7 +15,7 @@
 #include <ESP8266HTTPClient.h>
 #include <ArduinoJson.h>
 
-#define WEATHER_MAX (12 * 60)
+#define WEATHER_MAX (60)
 
 const IPAddress apIP(192, 168, 1, 1);
 const char* apSSID = "ESP8266_SETUP";
@@ -31,6 +31,7 @@ TickerScheduler ts(2);
 int weather_counter = 0;
 const int BUFFER_SIZE = 1024;
 StaticJsonBuffer<BUFFER_SIZE> jsonBuffer;
+bool gChangeMode = false;
 
 void doNtpSync(void* arg) {
 
@@ -61,18 +62,30 @@ void doWeatherSync(void* arg) {
   if (weather_counter == 0) {
     http_get();
     weather_counter++;
-    if (weather_counter >= WEATHER_MAX) {
-      weather_counter = 0;
-    }
+  }
+  if (weather_counter >= WEATHER_MAX) {
+    weather_counter = 0;
   }
   sendWeatherInfo(gWeather, gTempature);
+  if (gChangeMode) {
+    Serial.println("");
+    delay(1000);
+    if (1 == (weather_counter % 2)) {
+      Serial.println("");
+      Serial.println("SET_MODEA");      
+    }
+    else {
+      Serial.println("SET_MODED");
+    }
+  }
 }
 
 void setupExecuteTask() {
   // TODO
   ntp_begin(2390);
   ts.add(0, 60 * 1000, doNtpSync, NULL, true);
-  ts.add(1, 90 * 1000, doWeatherSync, NULL, true);
+  delay(10 * 1000);
+  ts.add(1, 60 * 1000, doWeatherSync, NULL, true);
 }
 
 
@@ -198,6 +211,9 @@ void startWebServer() {
       s += "function sendOff(){";
       s += "send(\"/MODE_D/\");";
       s += "}";
+      s += "function autoMode(){";
+      s += "send(\"/AUTO_MODE/\");";
+      s += "}";
       s += "function send(url){";
       s += "var xhr = new XMLHttpRequest();";
       s += "xhr.open(\"GET\", url, true);";
@@ -206,6 +222,7 @@ void startWebServer() {
       s += "</script>";
       s += "<button id=\"on\" onClick=sendOn()>Analog Mode</button>";
       s += "<button id=\"off\" onClick=sendOff()>Degital Mode</button>";
+      s += "<button id=\"mode\" onClick=autoMode()>AutoMode ON/OFF</button>";
       s += "<p id=\"LEDstatus\"></p>";
       webServer.send(200, "text/html", makePage("STA mode", s));
     });
@@ -222,6 +239,9 @@ void startWebServer() {
     });
     webServer.on("/MODE_D/", []() {
       Serial.println("SET_MODED");
+    });
+    webServer.on("/AUTO_MODE/", []() {
+      gChangeMode = !gChangeMode;
     });
     setupExecuteTask();
   }
